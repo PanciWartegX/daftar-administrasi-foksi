@@ -1,0 +1,55 @@
+<!-- TAMBAHKAN INI SEMENTARA DI BAGIAN <body>, HAPUS SETELAH ADMIN TERBUAT -->
+
+<div id="setupAdmin" style="position: fixed; top: 20px; right: 20px; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 9999; max-width: 300px;">
+    <h3 style="color: #DC2626; margin-bottom: 10px; font-weight: bold;">🔧 Setup Admin Pertama</h3>
+    <input type="email" id="setupEmail" placeholder="Email Admin" style="width: 100%; padding: 8px; margin-bottom: 8px; border: 1px solid #ccc; border-radius: 4px;">
+    <input type="password" id="setupPassword" placeholder="Password" style="width: 100%; padding: 8px; margin-bottom: 8px; border: 1px solid #ccc; border-radius: 4px;">
+    <input type="text" id="setupNama" placeholder="Nama Lengkap" style="width: 100%; padding: 8px; margin-bottom: 8px; border: 1px solid #ccc; border-radius: 4px;">
+    <button onclick="createFirstAdmin()" style="width: 100%; background: #DC2626; color: white; padding: 10px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">Buat Admin</button>
+    <p id="setupMessage" style="margin-top: 8px; font-size: 12px; color: #666;"></p>
+</div>
+
+<script>
+async function createFirstAdmin() {
+    const email = document.getElementById('setupEmail').value;
+    const password = document.getElementById('setupPassword').value;
+    const nama = document.getElementById('setupNama').value;
+    const msg = document.getElementById('setupMessage');
+    
+    if (!email || !password || !nama) {
+        msg.textContent = '❌ Semua field wajib diisi!';
+        msg.style.color = 'red';
+        return;
+    }
+    
+    try {
+        // Import fungsi createUserWithEmailAndPassword
+        const { createUserWithEmailAndPassword } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js");
+        
+        // Buat user auth
+        const userCredential = await createUserWithEmailAndPassword(window.firebaseAuth, email, password);
+        const uid = userCredential.user.uid;
+        
+        // Simpan data ke Firestore
+        await window.setDoc(window.doc(window.firebaseDb, 'users', uid), {
+            nama: nama,
+            email: email,
+            role: 'Admin',
+            createdAt: window.serverTimestamp(),
+            updatedAt: window.serverTimestamp()
+        });
+        
+        msg.textContent = '✅ Admin berhasil dibuat! Silakan refresh halaman dan login.';
+        msg.style.color = 'green';
+        
+        // Sembunyikan form setelah 3 detik
+        setTimeout(() => {
+            document.getElementById('setupAdmin').style.display = 'none';
+        }, 3000);
+        
+    } catch (error) {
+        msg.textContent = '❌ Error: ' + error.message;
+        msg.style.color = 'red';
+    }
+}
+</script>
